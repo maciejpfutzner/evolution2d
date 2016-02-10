@@ -21,15 +21,15 @@ def setup_sim(vehicle, track):
     sim_world = world(gravity=(0, -10), doSleep=True)
 
     #create the track (static ground body)
-    track.build()
+    track.build(sim_world)
 
     #TODO: figure out spawning position that's always just above the track
     x0, y0 = 10, 55
 
     #tracker - an object to ask for position
-    tracker = vehicle.build(x0, y0)
+    tracker = vehicle.build(sim_world, x0, y0)
 
-def run_sim():
+def run_sim(ext_func=None):
     starting_position = tracker.position[x] #just x coordinate
     stuck_time = 0
 
@@ -48,6 +48,11 @@ def run_sim():
         # if we're stuck for too long finish the loop
         if stuck_time > max_stuck_time:
             break
+
+        #This is supposed to be used when debugging,
+        #e.g. to draw from inside of this loop
+        if ext_func:
+            ext_func()
 
     #return final distance
     return position - starting_position
