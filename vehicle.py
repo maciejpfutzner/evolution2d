@@ -46,10 +46,13 @@ class Car(Vehicle):
             gene = self.genome[key]
             x = random.random()
             gene = 2*x # sizes from 0 to 2 metres
-            if key == 'body_width':
+            if key == 'body_length':
                 # body length is from 2 to 6 m
                 gene +=1
                 gene *= 2 
+            if 'wheel' in key:
+                # body length is from 2 to 6 m
+                gene +=1
             self.genome[key] = gene
 
     def build(self, world, x0, y0):
@@ -60,7 +63,7 @@ class Car(Vehicle):
 
         wheel_friction = 0.5
         max_torque = 1e3
-        speed = -100
+        speed = -10
 
         # Create a couple dynamic bodies
         carriage = world.CreateDynamicBody(position=(x0, y0))

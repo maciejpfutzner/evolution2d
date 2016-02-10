@@ -6,7 +6,7 @@ from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
 
 #TODO: tweak those, maybe pass them to setup
 min_move = 0.1 #min move before we say, we're stuck [m]
-max_stuck_time = 10 #max time being stuck before we finish [s]
+max_stuck_time = 1 #max time being stuck before we finish [s]
 
 #TODO: tweak setup, fix bugs, get a cleaning up function...
 
@@ -21,18 +21,21 @@ def setup_sim(vehicle, track):
     track.build(sim_world)
 
     #TODO: figure out spawning position that's always just above the track
-    x0, y0 = 10, 55
+    x0, y0 = 5, 10
 
     #tracker - an object to ask for position
     global tracker
     tracker = vehicle.build(sim_world, x0, y0)
-
-def run_sim(ext_func=None):
+    global starting_position
     starting_position = tracker.position[0] #just x coordinate
+
+
+def run_sim(n_iter=-1):
     stuck_time = 0
 
     time_step = 1./60 #60 Hz
     vel_iters, pos_iters = 6, 2 #apparently good
+    i = 0
     while True:
         sim_world.Step(time_step, vel_iters, pos_iters)
 
@@ -47,10 +50,9 @@ def run_sim(ext_func=None):
         if stuck_time > max_stuck_time:
             break
 
-        #This is supposed to be used when debugging,
-        #e.g. to draw from inside of this loop
-        if ext_func:
-            ext_func()
+        i+= 1
+        if n_iter>0 and i > n_iter:
+            break
 
     #return final distance
     return position - starting_position

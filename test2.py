@@ -51,7 +51,7 @@ radius1 = 3.3
 radius2 = 3.4
 wheel_friction = 0.5
 
-x0, y0 = 10, 55
+x0, y0 = 20, 100
 
 # Create a couple dynamic bodies
 carriage = world.CreateDynamicBody(position=(x0, y0))

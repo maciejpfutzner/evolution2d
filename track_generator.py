@@ -24,7 +24,7 @@ class Track:
         start = 0
         for i in xrange(self.n_segments):
             body = world.CreateStaticBody(
-                    position=(start,20),
+                    position=(start,0),
                     angle=self.seg_angles[i],
                     shapes=polygonShape(box=(self.seg_lengths[i], 1)))
             start += self.seg_lengths[i]
