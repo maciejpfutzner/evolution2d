@@ -1,6 +1,8 @@
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
+import random
+import math
 
 class Track:
     def __init__(self, length, roughness=0):
@@ -11,10 +13,12 @@ class Track:
 
     def generate(self):
         #TODO: make actual algorithm, now just a flat track with length
-        self.n_segments = 1
-        self.seg_lengths = [self.length]
-        self.seg_angles = [0]
-        self.generated = True
+        if self.roughness == 0:
+            self.gen_flat()
+        if self.roughness == 1:
+            self.gen_slopes()
+        else:
+            self.gen_rough()
 
     def build(self, world):
         if not self.generated:
@@ -24,11 +28,61 @@ class Track:
         start = 0
         for i in xrange(self.n_segments):
             body = world.CreateStaticBody(
-                    position=(start,0),
+                    position=self.seg_positions[i],
                     angle=self.seg_angles[i],
-                    shapes=polygonShape(box=(self.seg_lengths[i], 1)))
+                    shapes=polygonShape(
+                        box=(self.seg_lengths[i]/2., 1)))
             start += self.seg_lengths[i]
 
+        return self.length
 
 
+    def gen_flat(self):
+        self.n_segments = 1
+        self.seg_lengths = [self.length]
+        self.seg_angles = [0]
+        self.seg_positions = [(0,3)]
+        self.generated = True
 
+    def gen_slopes(self):
+        seg_len = 30
+        nn = self.length/seg_len
+        self.n_segments = nn
+        self.seg_lengths = [seg_len for x in xrange(nn)]
+        self.seg_angles = [0.15 for x in xrange(nn)]
+        self.seg_positions = [(0.9*seg_len*x,3) for x in xrange(nn)]
+        self.generated = True
+
+    #TODO: roughness
+    def gen_rough(self):
+        nn = self.length/15
+        self.n_segments = nn
+        self.seg_lengths = [0]*nn
+        self.seg_angles = [0]*nn
+        self.seg_positions = [0]*nn
+        for i in xrange(nn):
+            self.seg_lengths[i] = 15
+            angle = random.uniform(-0.2, 0.2)
+            self.seg_angles[i] = angle
+            px = i*15 + 15*math.cos(angle)
+            py = 3 + 15*math.sin(angle)
+            self.seg_positions[i] = (px, py)
+        self.generated = True
+
+
+#l = 10;
+#h = 1;
+#angle = 0.4;
+#px = 10;
+#py = 10;
+#angle = 0;
+#for i in range(0,10):
+#   body = world.CreateStaticBody(
+#           position=(px, py),
+#           angle=angle,
+#           shapes=polygonShape(box=(l, h)),
+#           )
+#   angle = random.uniform(-0.2,0.2);
+#   # l = l + random.uniform(-5,5)
+#   px = px + l + l*math.cos(angle);
+#   py = py + h + l*math.sin(angle);
