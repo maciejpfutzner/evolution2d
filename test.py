@@ -32,7 +32,7 @@ TIME_STEP = 1.0 / TARGET_FPS
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 
 
-def start_game():
+def start_game(car=None, track=None):
     global screen
     # --- pygame setup ---
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -40,10 +40,11 @@ def start_game():
     global clock
     clock = pygame.time.Clock()
 
-    global car
-    car = vehicle.Car()
-    car.random_genome()
-    track = track_generator.Track(200) #200 m length
+    if not car:
+        car = vehicle.Car()
+        car.random_genome()
+    if not track:
+        track = track_generator.Track(200) #200 m length
     sim.setup_sim(car, track)
 
 
@@ -82,12 +83,34 @@ def drawing_func(shift=0):
 
     # Flip the screen and try to keep at the target FPS
     pygame.display.flip()
-    clock.tick(TARGET_FPS)
 
 
-def run():
-    while True:
-        dist = sim.run_sim(1)
-        print dist
-        drawing_func(dist)
+def run(speed=1.):
+    drawing_func()
+
+    start = False
+    while not start:
+        event = pygame.event.wait()
+        if event.type == KEYDOWN and event.key == K_RETURN:
+            start = True
+        elif event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+            pygame.quit()
+            return
+
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                # The user closed the window or pressed escape
+                running = False
+
+        dist, is_over, ii= sim.run_sim(1)
+        print dist, is_over
+        drawing_func(-dist+20)
+        clock.tick(int(TARGET_FPS/float(speed)))
+        if is_over:
+            running = False
+
+    pygame.quit()
 
