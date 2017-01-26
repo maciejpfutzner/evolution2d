@@ -1,17 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-An attempt at some simple, self-contained pygame-based examples.
-
-Example 01
-
-In short:
-One static body: a big polygon to represent the ground
-One dynamic body: a rotated big polygon
-And some drawing code to get you going.
-
-kne
-"""
 import pygame
 from pygame.locals import (QUIT, KEYDOWN, K_ESCAPE, K_RETURN)
 
@@ -33,6 +20,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 
 
 def start_game(car=None, track=None):
+    pygame.init()
     global screen
     # --- pygame setup ---
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -72,8 +60,8 @@ circleShape.draw = my_draw_circle
 # --- main game loop ---
 
 
-def drawing_func(shift=0):
-    world = sim.sim_world
+def drawing_func(world, shift=0):
+    #world = sim.sim_world
 
     screen.fill((0, 0, 0, 0))
     # Draw the world
@@ -81,12 +69,12 @@ def drawing_func(shift=0):
         for fixture in body.fixtures:
             fixture.shape.draw(body, fixture, shift)
 
-    # Flip the screen and try to keep at the target FPS
+    # Update the screen
     pygame.display.flip()
 
 
 def run(speed=1.):
-    drawing_func()
+    drawing_func(sim.sim_world)
 
     start = False
     while not start:
@@ -105,10 +93,10 @@ def run(speed=1.):
                 # The user closed the window or pressed escape
                 running = False
 
-        dist, is_over, ii= sim.run_sim(1)
+        dist, is_over, ii= sim.run_sim(1, speed=speed)
         print dist, is_over
-        drawing_func(-dist+20)
-        clock.tick(int(TARGET_FPS/float(speed)))
+        drawing_func(sim.sim_world, -dist+20)
+        clock.tick(TARGET_FPS)
         if is_over:
             running = False
 

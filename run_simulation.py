@@ -22,6 +22,7 @@ def setup_sim(vehicle, track):
     length = track.build(sim_world)
 
     #TODO: figure out spawning position that's always just above the track
+    # - could be part of the track class
     x0, y0 = 5, 10
 
     #tracker - an object to ask for position
@@ -30,16 +31,20 @@ def setup_sim(vehicle, track):
     global starting_position
     starting_position = tracker.worldCenter[0] #just x coordinate
 
+    history.objects = [] # zero the state history
+
 
 #returns dist covered and whether it is over (bool)
-def run_sim(n_iter=-1):
+def run_sim(n_iter=-1, speed=1., save=False):
     stuck_time = 0
 
-    time_step = 1./60 #60 Hz
+    #FIXME: unfortunately speed affects physics...
+    time_step = speed/60. #60 Hz by default
     vel_iters, pos_iters = 6, 2 #apparently good
     i = 0
     while True:
         sim_world.Step(time_step, vel_iters, pos_iters)
+        if save: save_state()
 
         #check if we're moving forward
         position = tracker.worldCenter[0]
@@ -68,7 +73,9 @@ def run_sim(n_iter=-1):
     return (distance, False, n_iter)
 
 
-#TODO: incorporate this into the setup_sim and run_sim functions...
+#TODO: Rewrite this whole thing! Use classes instead of tuples with the name as
+#       first element!!!
+#   Also, we can't really store the whole state for each iteration, at least keep the track separately
 class StateHistory:
     pass
 history = StateHistory()
@@ -79,6 +86,7 @@ def save_state():
     for body in sim_world.bodies:
         for fixture in body:
             objects.append( fixture.shape.get_params(body) )
+    objects.append( ('tracker', list(tracker.worldCenter)) )
     history.objects.append(objects)
 
 def save_state_history(name, filename):

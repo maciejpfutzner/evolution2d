@@ -12,10 +12,9 @@ class Track:
         self.generate()
 
     def generate(self):
-        #TODO: make actual algorithm, now just a flat track with length
         if self.roughness == 0:
             self.gen_flat()
-        if self.roughness == 1:
+        elif self.roughness == 1:
             self.gen_slopes()
         else:
             self.gen_rough()
@@ -24,7 +23,6 @@ class Track:
         if not self.generated:
             return None
 
-        self.bodies = []
         start = 0
         for i in xrange(self.n_segments):
             body = world.CreateStaticBody(
