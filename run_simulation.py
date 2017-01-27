@@ -10,96 +10,99 @@ max_stuck_time = 2 #max time being stuck before we finish [s]
 
 #TODO: tweak setup, fix bugs, get a cleaning up function...
 
+class Simulation:
+    def __init__(self, track, vehicle, save=False):
+        self.track = track
+        self.vehicle = vehicle
 
-def setup_sim(vehicle, track):
-    # --- pybox2d world setup ---
-    # Create the world
-    global sim_world
-    sim_world = world(gravity=(0, -10), doSleep=True)
+        # Create the world
+        self.sim_world = world(gravity=(0, -10), doSleep=True)
+        # Create the track (static ground body)
+        self.track.build(self.sim_world)
 
-    #create the track (static ground body)
-    global length
-    length = track.build(sim_world)
+        #TODO: figure out spawning position that's always just above the track
+        # - could be part of the track class
+        x0, y0 = 5, 10
+        # TODO: make the tracker a property returning just the position!
+        self.tracker = self.vehicle.build(self.sim_world, x0, y0)
+        self.starting_position = self.tracker.worldCenter[0] #just x coordinate
 
-    #TODO: figure out spawning position that's always just above the track
-    # - could be part of the track class
-    x0, y0 = 5, 10
+        # Only init history after track was built
+        self.history = StateHistory(self) if save else None
 
-    #tracker - an object to ask for position
-    global tracker
-    tracker = vehicle.build(sim_world, x0, y0)
-    global starting_position
-    starting_position = tracker.worldCenter[0] #just x coordinate
+    #returns dist covered and whether it is over (bool)
+    def run(self, n_iter=-1, speed=1.):
+        stuck_time = 0
 
-    history.objects = [] # zero the state history
+        #FIXME: unfortunately speed affects physics...
+        time_step = speed/60. #60 Hz by default
+        vel_iters, pos_iters = 6, 2 #apparently good
+        i = 0
+        while True:
+            self.sim_world.Step(time_step, vel_iters, pos_iters)
+            if self.history: self.history.save_state()
 
+            #check if we're moving forward
+            position = self.tracker.worldCenter[0]
+            distance = position - starting_position
+            if distance < min_move:
+                stuck_time += time_step
+            else:
+                stuck_time = 0
 
-#returns dist covered and whether it is over (bool)
-def run_sim(n_iter=-1, speed=1., save=False):
-    stuck_time = 0
+            # if we're stuck for too long finish the loop
+            if stuck_time > max_stuck_time:
+                print "Stuck in one place"
+                return distance, True, n_iter
 
-    #FIXME: unfortunately speed affects physics...
-    time_step = speed/60. #60 Hz by default
-    vel_iters, pos_iters = 6, 2 #apparently good
-    i = 0
-    while True:
-        sim_world.Step(time_step, vel_iters, pos_iters)
-        if save: save_state()
+            i+= 1
+            if n_iter>0 and i > n_iter:
+                print "Reached max time", n_iter*time_step, "s"
+                return distance, False, n_iter
 
-        #check if we're moving forward
-        position = tracker.worldCenter[0]
-        distance = position - starting_position
-        if distance < min_move:
-            stuck_time += time_step
-        else:
-            stuck_time = 0
+            if self.tracker.worldCenter[1] < 0:
 
-        # if we're stuck for too long finish the loop
-        if stuck_time > max_stuck_time:
-            print "Stuck in one place"
-            return distance, True, n_iter
+                print "Fell off the cliff"
+                return distance, True, n_iter
 
-        i+= 1
-        if n_iter>0 and i > n_iter:
-            print "Reached max time", n_iter*time_step, "s"
-            return distance, False, n_iter
-
-        if tracker.worldCenter[1] < 0:
-            print "Fell off the cliff"
-            return distance, True, n_iter
-
-    #return final distance
-    print "Normal"
-    return (distance, False, n_iter)
+        #return final distance
+        print "Normal"
+        return (distance, False, n_iter)
 
 
-#TODO: Rewrite this whole thing! Use classes instead of tuples with the name as
-#       first element!!!
-#   Also, we can't really store the whole state for each iteration, at least keep the track separately
+# TODO: a single state should also be a class instead of collection of lists
 class StateHistory:
-    pass
-history = StateHistory()
-history.objects = [] #FIXME: clean at setup_sim
+    def __init__(self, simulation):
+        self.sim = simulation
+        self.track = self.get_objects(self.sim.track)
+        self.vehicle_states = []
+        self.tracker_states = []
 
-def save_state():
-    objects = []
-    for body in sim_world.bodies:
-        for fixture in body:
-            objects.append( fixture.shape.get_params(body) )
-    objects.append( ('tracker', list(tracker.worldCenter)) )
-    history.objects.append(objects)
+    def save_state(self):
+        objects = self.get_objects(self.sim.vehicle)
+        self.vehicle_states.append(objects)
+        tracker = tuple(self.sim.tracker.worldCenter)
+        self.tracker_states.append(tracker)
 
-def save_state_history(name, filename):
-    #open file for storing the history
-    shelf = shelve.open(filename)
-    history.name = name
-    shelf.setdefault('histories', [])
-    hist_list = shelf['histories']
-    hist_list.append(history)
-    shelf['histories'] = hist_list
-    shelf.close()
+    def write_to_file(self, name, filename):
+        #open file for storing the history
+        shelf = shelve.open(filename)
+        self.name = name
+        shelf.setdefault('histories', [])
+        hist_list = shelf['histories']
+        hist_list.append(history)
+        shelf['histories'] = hist_list
+        shelf.close()
+
+    def get_objects(self, instance):
+        objects = []
+        for body in instance.bodies:
+            for fixture in body:
+                objects.append( fixture.shape.get_params(body) )
+        return objects
 
 
+# FIXME: do this more elegantly?...
 def get_params_polygon(polygon, body):
     vertices = [tuple(body.transform * v) for v in polygon.vertices]
     return 'polygon', vertices
