@@ -20,9 +20,7 @@ class Simulation:
         # Create the track (static ground body)
         self.track.build(self.sim_world)
 
-        #TODO: figure out spawning position that's always just above the track
-        # - could be part of the track class
-        x0, y0 = 5, 10
+        x0, y0 = self.track.get_spawn_pos()
         # TODO: make the tracker a property returning just the position!
         self.tracker = self.vehicle.build(self.sim_world, x0, y0)
         self.starting_position = self.tracker.worldCenter[0] #just x coordinate

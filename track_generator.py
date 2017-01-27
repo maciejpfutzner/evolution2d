@@ -60,6 +60,7 @@ class Track:
         self.seg_lengths = [self.length]
         self.seg_angles = [0]
         self.seg_positions = [(0,3)]
+        self.spawn = (5, 10)
         self.generated = True
 
     def gen_slopes(self):
@@ -69,6 +70,7 @@ class Track:
         self.seg_lengths = [seg_len for x in xrange(nn)]
         self.seg_angles = [0.15 for x in xrange(nn)]
         self.seg_positions = [(0.9*seg_len*x,3) for x in xrange(nn)]
+        self.spawn = (5, 10)
         self.generated = True
 
     #TODO: roughness
@@ -83,10 +85,16 @@ class Track:
             angle = random.uniform(-0.2, 0.2)
             self.seg_angles[i] = angle
             px = i*15 + 15*math.cos(angle)
-            py = 5 + 15*math.sin(angle)
+            py = 20 + 15*math.sin(angle)
             self.seg_positions[i] = (px, py)
+        self.spawn = (15, 30)
         self.generated = True
 
+    def get_spawn_pos(self):
+        if not self.generated:
+            print 'Error, track not generated for some reason'
+            return None
+        return self.spawn
 
 #l = 10;
 #h = 1;

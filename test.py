@@ -20,7 +20,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 
 
 def start_game(track=None, car=None):
-    pygame.init()
+    pygame.display.init()
     global screen
     # --- pygame setup ---
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -82,7 +82,7 @@ def run(speed=1.):
         if event.type == KEYDOWN and event.key == K_RETURN:
             start = True
         elif event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-            pygame.quit()
+            pygame.display.quit()
             return
 
 
@@ -100,5 +100,5 @@ def run(speed=1.):
         if is_over:
             running = False
 
-    pygame.quit()
+    pygame.display.quit()
 
