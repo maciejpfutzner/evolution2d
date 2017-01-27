@@ -48,15 +48,15 @@ def draw_circle(position, radius, shift=0):
     pygame.draw.circle(screen, obj_color, position, radius)
 
 
-def drawing_func(objects):
+def draw_history(history, index):
+    tracker = history.tracker_states[index]
+    shift = 20 - tracker[0] # tracker's X position
+    objects = history.track + history.vehicle_states[index]
+    drawing_func(objects, shift)
+
+
+def drawing_func(objects, shift):
     screen.fill(bkg_color)
-
-    shift = 0.
-    # gotta find the tracker first
-    for obj in objects:
-        if obj[0] == 'tracker':
-            shift = 20 - obj[1][0] # tracker's X position
-
     # now draw the rest
     for obj in objects:
         if obj[0] == 'polygon':
@@ -69,7 +69,7 @@ def drawing_func(objects):
 
 
 def run(history, speed=1.):
-    drawing_func(history.objects[0])
+    draw_history(history, 0)
 
     start = False
     while not start:
@@ -81,8 +81,8 @@ def run(history, speed=1.):
             return
 
     running = True
-    n_obj = len(history.objects)
-    iobj = 0
+    n_states = len(history.vehicle_states)
+    istate = 0
 
     while running:
         for event in pygame.event.get():
@@ -90,13 +90,12 @@ def run(history, speed=1.):
                 # The user closed the window or pressed escape
                 running = False
 
-        iobj += int(speed)
-        if iobj >= n_obj:
+        istate += int(speed)
+        if istate >= n_states:
             running = False
             continue
 
-        obj = history.objects[iobj]
-        drawing_func(obj)
+        draw_history(history, istate)
         clock.tick(TARGET_FPS)
 
     #pygame.quit()
