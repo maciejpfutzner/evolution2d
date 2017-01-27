@@ -1,10 +1,22 @@
+"""
+Actual implementation of the evolving vehicle. This module contains the base
+class Vehicle and all its derivatives (Car, Walker, etc.)
+
+
+TODO:
+    Write class docstrings
+    Review (and delete?) the commented code
+    Make reproduction parameters class attributes (of Vehicle?)
+    More advanced cars, speed instead of torque?
+    Implement a walker
+"""
+
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
 import random
 from datetime import datetime
 
-#TODO: actual seed
 random.seed(datetime.now())
 
 class Vehicle:
@@ -36,12 +48,14 @@ class Vehicle:
 
 
 class Car(Vehicle):
-    def __init__(self):
+    def __init__(self, randomise_genes=True):
         Vehicle.__init__(self, 'Car')
         self.genome = { 'wheel1_r' : 0,
                         'wheel2_r' : 0,
                         'body_length' : 0,
                         'body_width' : 0 }
+        if randomise_genes:
+            self.random_genome()
 
     def random_genome(self):
         for key in self.genome:

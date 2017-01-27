@@ -1,17 +1,35 @@
+"""
+Module for creating the racing tracks each of which is an instance of class Track.
+Allows to create a flat block, series of slopes or a continuous track with
+parametrised roughness. Class method build the track as a series of box2d polygons.
+
+TODO:
+    Write class docstrings!
+    Review and delete commented code
+    Parametrise roughness
+"""
+
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
 import random
+from datetime import datetime
 import math
 
 class Track:
-    def __init__(self, length, roughness=0):
+    def __init__(self, length, roughness=0, seed=None):
         self.length = length
         self.roughness = roughness
+        self.seed = seed
         self.generated = False
         self.generate()
 
     def generate(self):
+        if self.seed:
+            random.seed(seed)
+        else:
+            random.seed(datetime.now())
+
         if self.roughness == 0:
             self.gen_flat()
         elif self.roughness == 1:
@@ -65,7 +83,7 @@ class Track:
             angle = random.uniform(-0.2, 0.2)
             self.seg_angles[i] = angle
             px = i*15 + 15*math.cos(angle)
-            py = 3 + 15*math.sin(angle)
+            py = 5 + 15*math.sin(angle)
             self.seg_positions[i] = (px, py)
         self.generated = True
 
