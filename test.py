@@ -6,7 +6,7 @@ import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
 
-import run_simulation as sim
+import run_simulation
 import track_generator
 import vehicle
 
@@ -19,7 +19,7 @@ TIME_STEP = 1.0 / TARGET_FPS
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 
 
-def start_game(car=None, track=None):
+def start_game(track=None, car=None):
     pygame.init()
     global screen
     # --- pygame setup ---
@@ -30,10 +30,10 @@ def start_game(car=None, track=None):
 
     if not car:
         car = vehicle.Car()
-        car.random_genome()
     if not track:
         track = track_generator.Track(200) #200 m length
-    sim.setup_sim(car, track)
+    global sim
+    sim = run_simulation.Simulation(track, car)
 
 
 colors = {
@@ -93,7 +93,7 @@ def run(speed=1.):
                 # The user closed the window or pressed escape
                 running = False
 
-        dist, is_over, ii= sim.run_sim(1, speed=speed)
+        dist, is_over, ii= sim.run(1, speed=speed)
         print dist, is_over
         drawing_func(sim.sim_world, -dist+20)
         clock.tick(TARGET_FPS)

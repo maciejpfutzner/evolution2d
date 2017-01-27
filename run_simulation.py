@@ -44,7 +44,7 @@ class Simulation:
 
             #check if we're moving forward
             position = self.tracker.worldCenter[0]
-            distance = position - starting_position
+            distance = position - self.starting_position
             if distance < min_move:
                 stuck_time += time_step
             else:
