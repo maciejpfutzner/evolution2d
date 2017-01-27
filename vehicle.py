@@ -11,6 +11,7 @@ class Vehicle:
     def __init__(self, type_name):
         self.type_name = type_name
         self.genome = {}
+        self.bodies = []
 
     def random_genome(self):
         pass
@@ -84,6 +85,7 @@ class Car(Vehicle):
                 #maxMotorTorque = max_torque, motorSpeed = speed,
                 #enableMotor = True)
 
+        self.bodies = [carriage, wheel1, wheel2]
         # return the body object for tracking position
         return carriage
 
