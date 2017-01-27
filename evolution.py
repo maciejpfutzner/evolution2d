@@ -17,7 +17,7 @@ TODO:
 """
 import copy
 
-import run_simulation as sim
+import run_simulation as run_sim
 import track_generator
 import vehicle
 #import test
@@ -41,11 +41,12 @@ def main():
     for gen in xrange(n_generations):
         max_score = 0
         for car in fleet:
-            #play(car, track)
-            sim.setup_sim(car, track)
-            distance, bb, time = sim.run_sim(1e4, save=True)
+            sim = run_sim.Simulation(track, car, save=True)
+            distance, bb, time = sim.run(1e4)
             car.score = distance #if distance < 20 else distance/time*100
-            car.history = copy.copy(sim.history) # FIXME: huge amounts of memory???
+
+            # FIXME: Huge amounts of memory? Nicer if possible
+            car.history = copy.copy(sim.history)
             #if distance > max_score:
             #    max_score = distance
 
