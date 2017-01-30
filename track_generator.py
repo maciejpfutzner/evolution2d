@@ -5,13 +5,12 @@ parametrised roughness. Class method build the track as a series of box2d polygo
 
 TODO:
     Write class docstrings!
-    Review and delete commented code
     Parametrise roughness
 """
 
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
-from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
+from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody, vec2)
 import random
 from datetime import datetime
 import math
@@ -35,7 +34,7 @@ class Track:
         elif self.roughness == 1:
             self.gen_slopes()
         else:
-            self.gen_rough()
+            self.gen_rough(self.roughness-1)
 
     def build(self, world):
         if not self.generated:
@@ -48,7 +47,7 @@ class Track:
                     position=self.seg_positions[i],
                     angle=self.seg_angles[i],
                     shapes=polygonShape(
-                        box=(self.seg_lengths[i]/2., 1)))
+                        box=(self.seg_lengths[i]/2., .5)))
             start += self.seg_lengths[i]
             self.bodies.append(body)
 
@@ -73,21 +72,23 @@ class Track:
         self.spawn = (5, 10)
         self.generated = True
 
-    #TODO: roughness
-    def gen_rough(self):
-        nn = self.length/15
+    def gen_rough(self, roughness):
+        SEG_LENGTH = 15
+        nn = self.length/SEG_LENGTH
         self.n_segments = nn
         self.seg_lengths = [0]*nn
         self.seg_angles = [0]*nn
         self.seg_positions = [0]*nn
+        prev_pos = vec2(0, 20) # starting coordinates
         for i in xrange(nn):
-            self.seg_lengths[i] = 15
-            angle = random.uniform(-0.2, 0.2)
+            self.seg_lengths[i] = SEG_LENGTH
+            angle = random.uniform(-0.1, 0.1)*roughness
             self.seg_angles[i] = angle
-            px = i*15 + 15*math.cos(angle)
-            py = 20 + 15*math.sin(angle)
-            self.seg_positions[i] = (px, py)
-        self.spawn = (15, 30)
+            length = SEG_LENGTH * math.cos(angle)
+            height = SEG_LENGTH * math.sin(angle)
+            self.seg_positions[i] = prev_pos + (.5*length, .5*height)
+            prev_pos += (length, height)
+        self.spawn = (SEG_LENGTH, 30)
         self.generated = True
 
     def get_spawn_pos(self):
@@ -96,19 +97,3 @@ class Track:
             return None
         return self.spawn
 
-#l = 10;
-#h = 1;
-#angle = 0.4;
-#px = 10;
-#py = 10;
-#angle = 0;
-#for i in range(0,10):
-#   body = world.CreateStaticBody(
-#           position=(px, py),
-#           angle=angle,
-#           shapes=polygonShape(box=(l, h)),
-#           )
-#   angle = random.uniform(-0.2,0.2);
-#   # l = l + random.uniform(-5,5)
-#   px = px + l + l*math.cos(angle);
-#   py = py + h + l*math.sin(angle);
