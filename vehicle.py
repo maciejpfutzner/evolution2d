@@ -47,6 +47,11 @@ class Vehicle:
     #    return child
 
 
+# constants (incorporate as parameters?)
+WHEEL_FRICTION = 5.0
+MAX_TORQUE = 1e4
+SPEED = -6
+
 class Car(Vehicle):
     def __init__(self, randomise_genes=True):
         Vehicle.__init__(self, 'Car')
@@ -77,26 +82,22 @@ class Car(Vehicle):
         radius1 = self.genome['wheel1_r']
         radius2 = self.genome['wheel2_r']
 
-        wheel_friction = 0.5
-        max_torque = 1e3
-        speed = -10
-
         # Create a couple dynamic bodies
         carriage = world.CreateDynamicBody(position=(x0, y0))
         carriage.CreatePolygonFixture(box=(width, height), density=1, friction=0.3)
 
         wheel1 = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
-        wheel1.CreateCircleFixture(radius=radius1, density=1, friction=wheel_friction)
+        wheel1.CreateCircleFixture(radius=radius1, density=1, friction=WHEEL_FRICTION)
         world.CreateRevoluteJoint(bodyA=carriage, bodyB=wheel1,
                 anchor = wheel1.worldCenter,
-                maxMotorTorque = max_torque, motorSpeed = speed,
+                maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 enableMotor = True)
 
         wheel2 = world.CreateDynamicBody(position=(x0+width*0.95, y0-height*0.85))
-        wheel2.CreateCircleFixture(radius=radius2, density=1, friction=wheel_friction)
+        wheel2.CreateCircleFixture(radius=radius2, density=1, friction=WHEEL_FRICTION)
         world.CreateRevoluteJoint(bodyA=carriage, bodyB=wheel2,
                 anchor = wheel2.worldCenter)#,
-                #maxMotorTorque = max_torque, motorSpeed = speed,
+                #maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 #enableMotor = True)
 
         self.bodies = [carriage, wheel1, wheel2]
