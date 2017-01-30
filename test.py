@@ -41,26 +41,27 @@ colors = {
     dynamicBody: (127, 127, 127, 255),
 }
 
-def my_draw_polygon(polygon, body, fixture, shift=0):
-    shift *= PPM
-    vertices = [(body.transform * v) * PPM for v in polygon.vertices]
-    vertices = [(v[0]+shift, SCREEN_HEIGHT - v[1]) for v in vertices]
+def my_draw_polygon(polygon, body, fixture, shift=(0,0)):
+    vertices = [((body.transform * v) + shift) * PPM for v in polygon.vertices]
+    vertices = [(v[0], SCREEN_HEIGHT - v[1]) for v in vertices]
     pygame.draw.polygon(screen, colors[body.type], vertices)
 polygonShape.draw = my_draw_polygon
 
 
-def my_draw_circle(circle, body, fixture, shift=0):
-    shift *= PPM
-    position = (body.transform * circle.pos) * PPM
-    position = (position[0]+shift, SCREEN_HEIGHT - position[1])
+def my_draw_circle(circle, body, fixture, shift=(0,0)):
+    position = (body.transform * circle.pos + shift) * PPM
+    out_pos = ((body.transform * (circle.pos + (circle.radius, 0)) + shift) * PPM)
+    position = (position[0], SCREEN_HEIGHT - position[1])
+    out_pos = (out_pos[0], SCREEN_HEIGHT - out_pos[1])
     pygame.draw.circle(screen, colors[body.type], [int(
         x) for x in position], int(circle.radius * PPM))
+    pygame.draw.line(screen, (255,0,0,0), position, out_pos)
 circleShape.draw = my_draw_circle
 
 # --- main game loop ---
 
 
-def drawing_func(world, shift=0):
+def drawing_func(world, shift=(0,0)):
     #world = sim.sim_world
 
     screen.fill((0, 0, 0, 0))
@@ -95,7 +96,8 @@ def run(speed=1.):
 
         dist, is_over, ii= sim.run(1, speed=speed)
         print dist, is_over
-        drawing_func(sim.sim_world, -dist+20)
+        tracker = sim.tracker.worldCenter
+        drawing_func(sim.sim_world, -tracker+(20,20))
         clock.tick(TARGET_FPS)
         if is_over:
             running = False
