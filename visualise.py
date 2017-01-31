@@ -12,6 +12,10 @@ TODO:
 import pygame
 from pygame.locals import (QUIT, KEYDOWN, K_ESCAPE, K_RETURN)
 
+import Box2D  # The main library
+# Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
+from Box2D.b2 import (world, polygonShape, circleShape, edgeShape, shape, vec2)
+
 # --- constants ---
 # Box2D deals with meters, but we want to display pixels,
 # so define a conversion factor:
@@ -23,6 +27,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 bkg_color = (0,0,0,0)
 obj_color = (255, 255, 255, 255)
 
+
 def start_game():
     pygame.display.init()
     global screen
@@ -33,24 +38,53 @@ def start_game():
     clock = pygame.time.Clock()
 
 
-def draw_polygon(vertices, shift=0):
-    vertices = [[int(pos * PPM) for pos in v] for v in vertices]
-    shift *= PPM
-    vertices = [(v[0]+shift, SCREEN_HEIGHT - v[1]) for v in vertices]
-    pygame.draw.polygon(screen, obj_color, vertices)
+# Remember to pass a list, even if single vertex
+def shift_scale_revert(vertices, shift):
+    """
+    Take vertices and shift them, scale to pixel values and revert y coordinate
+    for pygame drawing. Remember to pass a list of vertices even if one element.
+    Return vertices as tuples (not vec2 anymore)
+    """
+    for i, vert in enumerate(vertices):
+        vert = vec2(vert) + shift
+        vert = [int(pos*PPM) for pos in vert]
+        vert[1] = SCREEN_HEIGHT - vert[1]
+        vertices[i] = tuple(vert)
+    return vertices
 
 
-def draw_circle(position, radius, shift=0):
-    position = [pos * PPM for pos in position]
+# simple drawing (from defined points)
+def draw_polygon(vertices, shift=(0,0), color=obj_color, width=0):
+    vertices = shift_scale_revert(vertices, shift)
+    pygame.draw.polygon(screen, color, vertices, width)
+
+def draw_circle(position, radius, shift=(0,0), color=obj_color, width=0):
+    position = shift_scale_revert([position], shift)
     radius = int(radius*PPM)
-    shift *= PPM
-    position = (int(position[0]+shift), int(SCREEN_HEIGHT - position[1]))
-    pygame.draw.circle(screen, obj_color, position, radius)
+    pygame.draw.circle(screen, color, position, radius, width)
+
+
+# shape drawing
+def draw_polygonShape(polygon, shift=(0,0), color=obj_color, width=0):
+    vertices = shift_scale_revert(polygon.vertices, shift)
+    pygame.draw.polygon(screen, color, vertices, width)
+polygonShape.draw = draw_polygonShape
+
+def draw_circleShape(circle, shift=(0,0), color=obj_color, width=0):
+    position = shift_scale_revert([circle.pos], shift)[0]
+    radius = int(circle.radius*PPM)
+    pygame.draw.circle(screen, color, position, radius, width)
+circleShape.draw = draw_circleShape
+
+def draw_edgeShape(edge, shift=(0,0), color=obj_color, width=1):
+    vertices = shift_scale_revert(edge.vertices, shift)
+    pygame.draw.line(screen, color, vertices[0], vertices[1], width)
+edgeShape.draw = draw_edgeShape
 
 
 def draw_history(history, index):
     tracker = history.tracker_states[index]
-    shift = 20 - tracker[0] # tracker's X position
+    shift = vec2(20,20) - tracker
     objects = history.track + history.vehicle_states[index]
     drawing_func(objects, shift)
 
@@ -59,9 +93,13 @@ def drawing_func(objects, shift):
     screen.fill(bkg_color)
     # now draw the rest
     for obj in objects:
-        if obj[0] == 'polygon':
+        # if the passed object is a b2Shape, draw it shape-wise
+        if isinstance(obj, shape):
+            obj.draw(shift)
+        # otherwise, use the simple method based on the name
+        elif obj[0] == 'polygon':
             draw_polygon(obj[1], shift)
-        if obj[0] == 'circle':
+        elif obj[0] == 'circle':
             draw_circle(obj[1][0], obj[1][1], shift)
 
     # Update the screen
