@@ -1,7 +1,7 @@
-import shelve
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody)
+import state_history as sh
 
 
 #TODO: tweak those, maybe pass them to setup
@@ -26,7 +26,7 @@ class Simulation:
         self.starting_position = self.tracker.worldCenter[0] #just x coordinate
 
         # Only init history after track was built
-        self.history = StateHistory(self) if save else None
+        self.history = sh.StateHistory(self.track) if save else None
 
     #returns dist covered and whether it is over (bool)
     def run(self, n_iter=-1, speed=1.):
@@ -38,7 +38,7 @@ class Simulation:
         i = 0
         while True:
             self.sim_world.Step(time_step, vel_iters, pos_iters)
-            if self.history: self.history.save_state()
+            if self.history: self.history.save_state(self.vehicle)
 
             #check if we're moving forward
             position = self.tracker.worldCenter[0]
@@ -67,48 +67,4 @@ class Simulation:
         print "Normal"
         return (distance, False, n_iter)
 
-
-# TODO: a single state should also be a class instead of collection of lists
-class StateHistory:
-    def __init__(self, simulation):
-        self.sim = simulation
-        self.track = self.get_objects(self.sim.track)
-        self.vehicle_states = []
-        self.tracker_states = []
-
-    def save_state(self):
-        objects = self.get_objects(self.sim.vehicle)
-        self.vehicle_states.append(objects)
-        tracker = tuple(self.sim.tracker.worldCenter)
-        self.tracker_states.append(tracker)
-
-    def write_to_file(self, name, filename):
-        #open file for storing the history
-        shelf = shelve.open(filename)
-        self.name = name
-        shelf.setdefault('histories', [])
-        hist_list = shelf['histories']
-        hist_list.append(history)
-        shelf['histories'] = hist_list
-        shelf.close()
-
-    def get_objects(self, instance):
-        objects = []
-        for body in instance.bodies:
-            for fixture in body:
-                objects.append( fixture.shape.get_params(body) )
-        return objects
-
-
-# FIXME: do this more elegantly?...
-def get_params_polygon(polygon, body):
-    vertices = [tuple(body.transform * v) for v in polygon.vertices]
-    return 'polygon', vertices
-polygonShape.get_params = get_params_polygon
-
-def get_params_circle(circle, body):
-    position = tuple(body.transform * circle.pos)
-    radius = circle.radius
-    return 'circle', (position, radius)
-circleShape.get_params = get_params_circle
 

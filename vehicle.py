@@ -101,6 +101,7 @@ class Car(Vehicle):
                 #enableMotor = True)
 
         self.bodies = [carriage, wheel1, wheel2]
+        self.tracker = carriage.worldCenter
         # return the body object for tracking position
         return carriage
 
