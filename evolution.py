@@ -22,31 +22,38 @@ import track_generator
 import vehicle
 #import test
 import visualise
+import state_history as sh
 
 VehicleClass = vehicle.Car # or vehicle.Car
 
 n_generations = 10
-fleet_size = 100
-n_winners = 20
+fleet_size = 75
+n_winners = 15
 
 def main():
     fleet = []
     for i in xrange(fleet_size):
         car = VehicleClass()
         car.random_genome()
+        car.name = 'car_%d'%i
         fleet.append(car)
 
-    track = track_generator.Track(100, 1)
-
     for gen in xrange(n_generations):
+        track = track_generator.Track(400, 5)
+
+        hist = sh.StateHistory()
+
         max_score = 0
         for car in fleet:
             sim = run_sim.Simulation(track, car, save=True)
+            if not hist.track:
+                hist.set_track(track)
+
             distance, bb, time = sim.run(1e4)
             car.score = distance #if distance < 20 else distance/time*100
 
             # FIXME: Huge amounts of memory? Nicer if possible
-            car.history = copy.copy(sim.history)
+            hist.timelines[car.name] = sim.history.timelines['timeline']
             #if distance > max_score:
             #    max_score = distance
 
@@ -66,10 +73,10 @@ def main():
                 #print ""
                 fleet.append(winner.get_child())
 
-        #print ""
-        #play(winners[0], track)
+        # for now only visualise the winners timeline
+        timelines = [winners[0].name]
         visualise.start_game()
-        visualise.run(winners[0].history, speed=3)
+        visualise.run(hist, timelines, speed=3)
 
 
 def play(car, track):
