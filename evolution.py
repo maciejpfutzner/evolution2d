@@ -29,6 +29,7 @@ VehicleClass = vehicle.Car # or vehicle.Car
 n_generations = 10
 fleet_size = 75
 n_winners = 15
+display_winners = 3
 
 def main():
     fleet = []
@@ -59,22 +60,21 @@ def main():
 
         fleet.sort(key=lambda car:car.score, reverse=True) 
         winners = fleet[0:n_winners]
-        scores = [car.score for car in fleet]
+        #scores = [car.score for car in fleet]
 
         print "Scoreboard:"
-        print scores[0:n_winners]
+        #print scores[0:n_winners]
 
         fleet = []
-        #print "Winners:"
         for winner in winners:
-            #print winner.score
-            #print "\nNext winner reproduces"
+            print "%s: %g" %(winner.name, winner.score)
             for j in xrange(fleet_size/n_winners):
-                #print ""
-                fleet.append(winner.get_child())
+                child = winner.get_child()
+                child.name = winner.name + '_%d'%j
+                fleet.append(child)
 
         # for now only visualise the winners timeline
-        timelines = [winners[0].name]
+        timelines = [w.name for w in winners[:display_winners]]
         visualise.start_game()
         visualise.run(hist, timelines, speed=3)
 
