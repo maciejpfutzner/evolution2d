@@ -22,7 +22,7 @@ from Box2D.b2 import (world, polygonShape, circleShape, edgeShape, shape, vec2)
 PPM = 10.0  # pixels per meter
 TARGET_FPS = 60 #60
 TIME_STEP = 1.0 / TARGET_FPS
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 1024, 744
 
 bkg_color = (0,0,0,0)
 obj_color = (255, 255, 255, 255)
@@ -82,10 +82,15 @@ def draw_edgeShape(edge, shift=(0,0), color=obj_color, width=1):
 edgeShape.draw = draw_edgeShape
 
 
-def draw_history(history, index):
-    tracker = history.tracker_states[index]
+def draw_history(history, timelines, index):
+    first = timelines[0]
+    tracker = history.timelines[first].tracker_states[index]
     shift = vec2(20,20) - tracker
-    objects = history.track + history.vehicle_states[index]
+    objects = []
+    objects += history.track
+    for time in timelines:
+        objects += history.timelines[time].vehicle_states[index]
+    print len(objects)
     drawing_func(objects, shift)
 
 
@@ -106,8 +111,8 @@ def drawing_func(objects, shift):
     pygame.display.flip()
 
 
-def run(history, speed=1.):
-    draw_history(history, 0)
+def run(history, timelines, speed=1.):
+    draw_history(history, timelines, 0)
 
     start = False
     while not start:
@@ -119,7 +124,7 @@ def run(history, speed=1.):
             return
 
     running = True
-    n_states = len(history.vehicle_states)
+    n_states = history.max_length
     istate = 0
 
     while running:
@@ -133,7 +138,7 @@ def run(history, speed=1.):
             running = False
             continue
 
-        draw_history(history, istate)
+        draw_history(history, timelines, istate)
         clock.tick(TARGET_FPS)
 
     #pygame.quit()
