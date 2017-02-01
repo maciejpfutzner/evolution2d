@@ -138,8 +138,12 @@ def run(history, timelines, speed=1.):
             running = False
             continue
 
-        draw_history(history, timelines, istate)
-        clock.tick(TARGET_FPS)
+        try:
+            draw_history(history, timelines, istate)
+            clock.tick(TARGET_FPS)
+        except(IndexError):
+            print 'Run out of bounds for first car, finishing'
+            return
 
     #pygame.quit()
 
