@@ -21,9 +21,10 @@ class Simulation:
         self.track.build(self.sim_world)
 
         x0, y0 = self.track.get_spawn_pos()
-        # TODO: make the tracker a property returning just the position!
-        self.tracker = self.vehicle.build(self.sim_world, x0, y0)
-        self.starting_position = self.tracker.worldCenter[0] #just x coordinate
+        self.vehicle.build(self.sim_world, x0, y0)
+
+        self.tracker = self.vehicle.tracker
+        self.starting_position = self.tracker[0] #just x coordinate
 
         # Only init history after track was built
         self.history = sh.StateHistory(self.track) if save else None
@@ -41,7 +42,7 @@ class Simulation:
             if self.history: self.history.save_state(self.vehicle)
 
             #check if we're moving forward
-            position = self.tracker.worldCenter[0]
+            position = self.tracker[0]
             distance = position - self.starting_position
             if distance < min_move:
                 stuck_time += time_step
@@ -58,7 +59,7 @@ class Simulation:
                 print "Reached max time", n_iter*time_step, "s"
                 return distance, False, n_iter
 
-            if self.tracker.worldCenter[1] < 0:
+            if self.tracker[1] < 0:
 
                 print "Fell off the cliff"
                 return distance, True, n_iter
