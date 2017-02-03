@@ -1,16 +1,14 @@
 """
 Simple visualisation using pygame.
+start_game() initialises the pygame screen and clock
+run(history, list_of_timelines, speed) draws the subsequent physics frames of a
+    saved history for a list of timelines.
 
-TODO:
-    Should initialise the pygame screen, open the saved state history of a
-    single run, and draw the subsequent physics frames. Might need some
-    tinkering to recreate polygon and circle objects from pure python lists of
-    vertices/ circle positions that is stored in the history. The animation
-    should follow the main object (tricky?)
 """
 
 import pygame
 from pygame.locals import (QUIT, KEYDOWN, K_ESCAPE, K_RETURN)
+from pygame.color import Color
 
 import Box2D  # The main library
 # Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
@@ -24,8 +22,11 @@ TARGET_FPS = 60 #60
 TIME_STEP = 1.0 / TARGET_FPS
 SCREEN_WIDTH, SCREEN_HEIGHT = 1024, 744
 
-bkg_color = (0,0,0,0)
-obj_color = (255, 255, 255, 255)
+bkg_color = (255, 255, 255, 0) # white, transparent
+def_color = (0, 0, 0, 255) # black, opaque
+
+col_names = ['red', 'green', 'blue', 'orange', 'yellow', 'pink', 'azure']
+obj_colors = [Color(name) for name in col_names]
 
 
 def start_game():
@@ -54,61 +55,59 @@ def shift_scale_revert(vertices, shift):
 
 
 # simple drawing (from defined points)
-def draw_polygon(vertices, shift=(0,0), color=obj_color, width=0):
+def draw_polygon(vertices, shift=(0,0), color=def_color, width=0):
     vertices = shift_scale_revert(vertices, shift)
     pygame.draw.polygon(screen, color, vertices, width)
 
-def draw_circle(position, radius, shift=(0,0), color=obj_color, width=0):
+def draw_circle(position, radius, shift=(0,0), color=def_color, width=0):
     position = shift_scale_revert([position], shift)
     radius = int(radius*PPM)
     pygame.draw.circle(screen, color, position, radius, width)
 
 
 # shape drawing
-def draw_polygonShape(polygon, shift=(0,0), color=obj_color, width=0):
+def draw_polygonShape(polygon, shift=(0,0), color=def_color, width=0):
     vertices = shift_scale_revert(polygon.vertices, shift)
     pygame.draw.polygon(screen, color, vertices, width)
 polygonShape.draw = draw_polygonShape
 
-def draw_circleShape(circle, shift=(0,0), color=obj_color, width=0):
+def draw_circleShape(circle, shift=(0,0), color=def_color, width=0):
     position = shift_scale_revert([circle.pos], shift)[0]
     radius = int(circle.radius*PPM)
     pygame.draw.circle(screen, color, position, radius, width)
 circleShape.draw = draw_circleShape
 
-def draw_edgeShape(edge, shift=(0,0), color=obj_color, width=1):
+def draw_edgeShape(edge, shift=(0,0), color=def_color, width=1):
     vertices = shift_scale_revert(edge.vertices, shift)
     pygame.draw.line(screen, color, vertices[0], vertices[1], width)
 edgeShape.draw = draw_edgeShape
 
 
 def draw_history(history, timelines, index):
+    screen.fill(bkg_color)
     first = timelines[0]
     tracker = history.timelines[first].tracker_states[index]
-    shift = vec2(20,20) - tracker
-    objects = []
-    objects += history.track
-    for time in timelines:
-        objects += history.timelines[time].vehicle_states[index]
-    print len(objects)
-    drawing_func(objects, shift)
+    shift = vec2(40,20) - tracker
+    drawing_func(history.track, shift=shift, color=def_color)
+    for i, time in enumerate(reversed(timelines)):
+        objects = history.timelines[time].vehicle_states[index]
+        drawing_func(objects, shift=shift, color=obj_colors[i])
+
+    # Update the screen
+    pygame.display.flip()
 
 
-def drawing_func(objects, shift):
-    screen.fill(bkg_color)
-    # now draw the rest
+def drawing_func(objects, shift, color):
     for obj in objects:
         # if the passed object is a b2Shape, draw it shape-wise
         if isinstance(obj, shape):
-            obj.draw(shift)
+            obj.draw(shift, color)
+            obj.draw(shift, def_color, width=2)
         # otherwise, use the simple method based on the name
         elif obj[0] == 'polygon':
             draw_polygon(obj[1], shift)
         elif obj[0] == 'circle':
             draw_circle(obj[1][0], obj[1][1], shift)
-
-    # Update the screen
-    pygame.display.flip()
 
 
 def run(history, timelines, speed=1.):
