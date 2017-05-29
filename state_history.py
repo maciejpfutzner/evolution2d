@@ -111,6 +111,16 @@ class StateHistory:
         """
         pass
 
+    def get_shapes(self, index, timeline='timeline'):
+        """
+        Return all shapes of the vehicle in correct positions
+
+        Arguments:
+            index:      index of the entry in the history
+            timeline:   name of the timeline ('timeline' by default)
+        """
+        return self.timelines[timeline].vehicle_states[index]
+
 
 # Module function to get the shapes from bodies
 def get_shapes(instance):

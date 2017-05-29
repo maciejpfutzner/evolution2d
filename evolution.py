@@ -24,7 +24,7 @@ import vehicle
 import visualise
 import state_history as sh
 
-VehicleClass = vehicle.Car # or vehicle.Car
+VehicleClass = vehicle.Car
 
 n_generations = 10
 fleet_size = 75
@@ -47,6 +47,9 @@ def main():
         max_score = 0
         for car in fleet:
             sim = run_sim.Simulation(track, car, save=True)
+
+            # XXX: Apparently the track has to be built
+            # before the history can be set up
             if not hist.track:
                 hist.set_track(track)
 

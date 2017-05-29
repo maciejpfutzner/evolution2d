@@ -90,7 +90,8 @@ def draw_history(history, timelines, index):
     shift = vec2(40,20) - tracker
     drawing_func(history.track, shift=shift, color=def_color)
     for i, time in enumerate(reversed(timelines)):
-        objects = history.timelines[time].vehicle_states[index]
+        #objects = history.timelines[time].vehicle_states[index]
+        objects = history.get_shapes(index=index, timeline=time)
         drawing_func(objects, shift=shift, color=obj_colors[i])
 
     # Update the screen

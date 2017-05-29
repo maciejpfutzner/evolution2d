@@ -5,7 +5,8 @@ parametrised roughness. Class method build the track as a series of box2d polygo
 
 TODO:
     Write class docstrings!
-    Parametrise roughness
+    Make the spawnpoint just above the first track segment
+    Provide a finish point to run_simulation
 """
 
 import Box2D  # The main library
