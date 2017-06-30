@@ -2,15 +2,28 @@
 
 Simple project for evolving vehicles crossing a 2D landscape. Physics simulation using pybox2d, visualisation with pygame.
 
+
+## How to run
+
+For a quick start, run `python evolution.py`.
+The code will simulate a race of 75 randomly generated simple cars on a random track. The result of each race (finished the course, stuck in place or exceeded total time) is printed to the console.
+The individual vehicles are ranked based on distance (since they fall off the open end of the track, higher velocity translates to nigger reach) and 15 best ones are chosen, with results printed out. Those reproduce 5 times with random mutations to create the next generation.
+The three best car races are visualised with the pygame package: to start the race press Enter (after focusing on the pygame window), to stop it or skip it, press Esc.
+The whole process is repeated 10 times, showing evolution of the car design.
+
+<!--![Screenshot from one of the races](demo.jpg)-->
+<img src="demo.jpg" alt="Screenshot from one of the races" width="600"><br/>
+
+
 ## Description of modules
 
 ### `run_simulation.py`
 Simple implementation of the pybox2d simulation. Creating an instance of the `Simulation` class creates the world as well as
 the vehicle and track objects (using their own constructors). Class method `run` executes the simulation until the
 vehicle doesn't move for more than `min_move` metres for `max_stuck_time` seconds; then returns the total distance
-traveled.
+travelled.
 
-(TODO: Write class docstrings, make a class for single states in StateHistory, some way to check if the track was too short?)
+(TODO: Write class docstrings, some way to check if the track was too short?)
 
 
 ### `visualise.py`
@@ -18,7 +31,20 @@ traveled.
 Simple visualisation using pygame. Initialises the pygame screen, opens the saved state history of a single
 run, and draws the subsequent physics frames. 
 
-(TODO: Add more colours, open histories from files?)
+(TODO: More colours and transparencies?)
+
+
+### `state_history.py`
+
+History of simulation states
+
+Objects of class StateHistory keep the shapes (in correct positions) of all the
+simulated bodies at each time step, so it can be saved and visualised
+separately. See documentation of StateHistory.
+Additional helper functions serve to extract the transformed shapes from body
+attributes.
+
+(TODO: more efficient history storing, saving to and loading from files)
 
 
 ### `evolution.py`
@@ -37,7 +63,7 @@ Module with functions to create a track for vehicles. Should have a generation m
 for a given seed (so that every vehicle from the same population races on the same one), and a function to create the
 appropriate pybox2d objects when called from `run_simulation.py`
 
-(TODO: think of an actual track generation algorithm, implement with pybox2d)
+(TODO: Add start and end points)
 
 
 ### `vehicle.py`
@@ -47,7 +73,7 @@ to a certain vehicle type (car, walker, etc.) should be kept here. That means th
 (random) objects, build their pybox2d representation in the simulation and breed them (create mutated offspring) only
 by calling functions defined in this module.
 
-(TODO: review Car class, then Walker)
+(TODO: implement Walker, add efficient state history interface)
 
 
 ## Resources
@@ -56,7 +82,7 @@ We are using [pybox2d](https://github.com/pybox2d/pybox2d) ([manual](https://git
 
 ### Installation instructions
 
-Making sure that all the modules work together seems like the biggest nightmare in this projects. Here's how I've finally managed to get pygame and pybox2d running on my macOS.
+Making sure that all the modules work together seems like the biggest trouble in this projects. Here's how I've finally managed to get pygame and pybox2d running on my macOS.
 It's certainly not the only way to get it done, but it worked for me and hopefully will for you too.
 
 1. Make sure you have pip and your default python installation is associated with it. (In my case I had to remove the version installed by MacPorts, by removing it completely: `sudo port -fp uninstall installed`)
